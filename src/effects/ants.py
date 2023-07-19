@@ -1,6 +1,6 @@
 # control parameters
 enabled = True
-solo = True
+solo = False
 
 # external parameters
 runtime = 10000 #ms
