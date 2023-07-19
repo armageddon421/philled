@@ -56,3 +56,11 @@ fade = True
 def render(channel, max_channels, time, epoch):
     return 1.0
 ```
+
+## Notes on boards.py
+
+The mac address needed will be output by a board during startup. After flashing micropython and uploading the project, connect via repl and hit Ctrl+D to reboot it. The mac can be copied to the boards.py file in the way it is represented there.
+
+for the channels list, which is limited to 6 entries on the esp32-c3, the first number is the channel or pixel number in the whole setup. The second number is the GPIO pin of the board to use. These are the raw GPIO numbers of the ESP32-c3, not the "D" numbers. You can find a diagram on [seedstudio's wiki](https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/#pinout-diagram) where it's the GPIO pin numbers in the green boxes.
+
+The name can be defined arbitrarily but has to be unique. This will also be the name of the wifi AP provided.
