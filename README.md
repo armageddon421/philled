@@ -40,3 +40,19 @@ In this case, the inputs are:
 - the channel, which is the current pixel number to be rendered
 - max_channels: how many total channels there are
 - epoch, which represents how often this effect theoretically has been run. Useful to create slight variations of the effects.
+
+files in the effects subfolder are loaded automatically.
+
+Each effect needs at least the following parameters and the render function
+```python
+# control parameters
+enabled = True
+solo = False #disables all other effects
+
+# external parameters
+runtime = 4000 #ms
+fade = True
+
+def render(channel, max_channels, time, epoch):
+    return 1.0
+```
