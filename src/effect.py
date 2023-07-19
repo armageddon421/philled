@@ -71,12 +71,15 @@ def run(channels, time, multiplier, gamma):
                 fade_multiplier = 1.0 - (etime-active_effect.runtime)/fadetime
 
         for channel in channels:
-            chn = channel[0]
-            if reverse:
-                chn = maxchannels - chn - 1
-            value = active_effect.render(chn, maxchannels, etime, epoch)
-            value *= fade_multiplier
-            value = math.pow(value, gamma)
-            value = int(value * multiplier)
-            channel[1].duty(value)
+            try:
+                chn = channel[0]
+                if reverse:
+                    chn = maxchannels - chn - 1
+                value = active_effect.render(chn, maxchannels, etime, epoch)
+                value *= fade_multiplier
+                value = math.pow(value, gamma)
+                value = int(value * multiplier)
+                channel[1].duty(value)
+            except:
+                channel[1].duty(50)
         

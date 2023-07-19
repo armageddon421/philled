@@ -14,3 +14,4 @@ use included batch files:
 clean.bat deletes everything on the board, useful if files have been deleted locally
 upload.bat uploads the src folder to the auto-detected board by mpremote
 sync_to_all_boards.bat syncs all files to all connected and online boards via espnow
+repl.bat starts an interative python shell on the target

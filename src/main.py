@@ -515,8 +515,7 @@ def sendFile(peer, fname):
                         chunk_success = True
                         break
                     else:
-                        print("wrong index response", ack_idx, "instead of", idx, "->start over")
-                        return False
+                        print("x",end='')
                 print('.',end='')
 
             if not chunk_success:
@@ -644,8 +643,6 @@ def syncFiles(dir="."):
             print("timeout wiping effects, abandoning client")
             continue
 
-
-        
 
         sendlist = []
         #for each local file
