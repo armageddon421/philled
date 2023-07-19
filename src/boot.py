@@ -4,4 +4,3 @@
 #import webrepl
 #webrepl.start()
 
-# set up PWM and disable / turn on dimly the leds here
