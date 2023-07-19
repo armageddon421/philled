@@ -1,6 +1,7 @@
 
 import os
 import math
+import random
 
 effects = []
 total_time = 0
@@ -47,9 +48,17 @@ def run(channels, time, multiplier, gamma):
 
     reverse = (epoch%2) == 1
 
+    random.seed(epoch*783627)
+    bowl = [x for x in range(len(effects))]
+    shuffled_effects = []
+    while(len(bowl)):
+        i = bowl[random.randrange(len(bowl))]
+        bowl.remove(i)
+        shuffled_effects.append(effects[i])
+
     active_effect = None
 
-    for e in effects:
+    for e in shuffled_effects:
         effective_runtime = e.runtime
         if e.fade:
             effective_runtime += fadetime * 2
