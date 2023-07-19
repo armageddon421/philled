@@ -79,6 +79,8 @@ def run(channels, time, multiplier, gamma):
                 value *= fade_multiplier
                 value = math.pow(value, gamma)
                 value = int(value * multiplier)
+                if value < 0: value = 0
+                if value > 1023: value = 1023
                 channel[1].duty(value)
             except:
                 channel[1].duty(50)
