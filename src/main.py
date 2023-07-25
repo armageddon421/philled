@@ -587,12 +587,18 @@ def syncFiles(dir="."):
                     print("timeout", peer['name'])
         else:
             print("unreachable", peer['name'])
+
+    handle_effects = False
+    for d in dir:
+        if(d == "." or d == "/" or d == "./" or d.startsWith("effects") or d.startsWith("/effects") or d.startsWith("./effects")):
+            handle_effects = True
+            break
     
     #for each responsive board
     for peer in peers_alive:
         print("===== handling", peer['name'])
 
-        if(dir == "." or dir == "/" or dir == "./" or dir.startsWith("effects") or dir.startsWith("/effects") or dir.startsWith("./effects")):
+        if handle_effects:
             #check effects dirlist hashes
             wipe_effects = False
             effects_hash = filetools.hash_dirlist("effects")
@@ -707,4 +713,3 @@ def syncFiles(dir="."):
         print("Successfully synced to", len(peers_alive), "reachable boards!")
     else:
         print("Something failed, not resetting boards. Check logs and try again please.")
-    
