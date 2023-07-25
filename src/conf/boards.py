@@ -64,5 +64,19 @@ board_conf = [
         "group": 2,
         "channels": [
             ]
+    },
+    {   
+        "mac": b'4\x85\x18\x05\xc2\xd5',
+        "name": "philled7",
+        "group": 2,
+        "channels": [
+            ]
+    },
+    {   
+        "mac": b'4\x85\x18\x05v]',
+        "name": "philled8",
+        "group": 2,
+        "channels": [
+            ]
     }
 ]
