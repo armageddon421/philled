@@ -28,11 +28,17 @@ def wipe_dir( path="effects",sub=True):
 def hash(fname):
     try:
         file = open(fname, "rb")
-        hash = hashlib.sha256(file.read())
+        hash = hashlib.sha256()
+        chunk = file.read(256)
+        while len(chunk):
+            hash.update(chunk)
+            chunk = file.read(256)
         file.close()
         return hash.digest()
-    except:
-        print(fname, "not found for hashing")
+    except Exception as e:
+        import sys
+        sys.print_exception(e)
+        print(fname, "not found for hashing or error")
         return b''
 
 
@@ -59,5 +65,5 @@ def hash_dirlist(dir):
     except Exception as e:
         import sys
         sys.print_exception(e)
-        print(dir, "not found for hashing")
+        print(dir, "not found for hashing or error")
         return b''
