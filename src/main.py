@@ -722,7 +722,7 @@ def syncFiles(dir="."):
         #reset self after 5 seconds
         #time.sleep(5)
         #machine.reset()
-        print("Successfully synced to all boards!")
+        print("Successfully synced to", len(peers_alive), "reachable boards!")
     else:
         print("Something failed, not resetting boards. Check logs and try again please.")
     
