@@ -21,37 +21,50 @@ size_pulse_frequency_max = 2.3
 import math
 import random
 
-def render(channel, max_channels, time, epoch):
+pulsars = []
+
+def prepare(max_channels, time, epoch):
+    global pulsars
     seed = (epoch * 412789)*243
     random.seed(seed)
 
-    count = max_channels/20 * runtime / 1000 * avg_per_second
+    count = int(max_channels/20 * runtime / 1000 * avg_per_second)
 
-    
+    if(len(pulsars) != count):
+        pulsars = [{} for x in range(count)]
+
+    for pulsar in pulsars:
+        pulsar["bri"] = min_brightness + random.random()*(max_brightness-min_brightness)
+        size = (min_size + random.random()*(max_size-min_size))/2
+
+        pulsar["pos"] = size * 0.7 + random.random() * (1-size*0.7*2)
+        pulsar["peaktime"] = random.randrange(ramp_up, runtime-ramp_down)
+
+        pulsar["period"] = size_pulse_frequency_min + random.random()*(size_pulse_frequency_max-size_pulse_frequency_min)
+        pulsar["size"] = size + math.sin(random.random()*2*math.pi + time/1000.0*2*math.pi*pulsar["period"]) * size_pulse_scale * random.random()
+
+
+def render(channel, max_channels, time, epoch):
+    global pulsars
+
 
     value = 0
 
-    for i in range(count):
-        bri = min_brightness + random.random()*(max_brightness-min_brightness)
-        size = (min_size + random.random()*(max_size-min_size))/2
+    for pulsar in pulsars:
 
-        position = size * 0.7 + random.random() * (1-size*0.7*2)
-        peaktime = random.randrange(ramp_up, runtime-ramp_down)
+        channel_size = pulsar["size"] * max_channels
+        bri = pulsar["bri"]
 
-        period = size_pulse_frequency_min + random.random()*(size_pulse_frequency_max-size_pulse_frequency_min)
-        size += math.sin(random.random()*2*math.pi + time/1000.0*2*math.pi*period) * size_pulse_scale * random.random()
-        channel_size = size * max_channels
-
-        if(time < peaktime-ramp_up):
+        if(time < pulsar["peaktime"]-ramp_up):
             bri = 0
-        elif(time < peaktime):
-            bri *= 1.0 - (peaktime-time)/ramp_up
-        elif(time < peaktime+ramp_down):
-            bri *= 1.0 - (time-peaktime)/ramp_down
+        elif(time < pulsar["peaktime"]):
+            bri *= 1.0 - (pulsar["peaktime"]-time)/ramp_up
+        elif(time < pulsar["peaktime"]+ramp_down):
+            bri *= 1.0 - (time-pulsar["peaktime"])/ramp_down
         else:
             bri = 0
 
-        position = position*max_channels
+        position = pulsar["pos"]*max_channels
         dist = abs(channel-position)
         if dist < channel_size and channel_size > 0:
             val = bri

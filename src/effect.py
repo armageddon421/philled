@@ -79,6 +79,18 @@ def run(channels, time, multiplier, gamma):
             elif etime > active_effect.runtime:
                 fade_multiplier = 1.0 - (etime-active_effect.runtime)/fadetime
 
+        try:
+            active_effect.prepare(maxchannels, etime, epoch)
+        except AttributeError as e: #prepare function is optional
+            pass
+        except Exception as e:
+            import sys
+            sys.print_exception(e)
+            print(type(e))
+            for channel in channels:
+                channel[1].duty(50)
+            return
+
         for channel in channels:
             try:
                 chn = channel[0]
@@ -91,6 +103,9 @@ def run(channels, time, multiplier, gamma):
                 if value < 0: value = 0
                 if value > 1023: value = 1023
                 channel[1].duty(value)
-            except:
+            except Exception as e:
+                import sys
+                sys.print_exception(e)
+                print(type(e))
                 channel[1].duty(50)
         
