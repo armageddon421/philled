@@ -95,6 +95,7 @@ msg_response = None
 current_file_write = None
 current_file_chunk = 0
 reset_timer = 0
+last_upload_msg_time = 0
 # uneven types are responses
 def handle_msg(type, data):
     global dbgled
@@ -102,6 +103,7 @@ def handle_msg(type, data):
     global current_file_write
     global current_file_chunk
     global reset_timer
+    global last_upload_msg_time
 
     dbgled = 5
 
@@ -115,14 +117,17 @@ def handle_msg(type, data):
     if type == 1100: #delete folder
         filetools.wipe_dir(bytes(data[6:]).decode())
         send_msg(1101, data[:6], my_mac)
+        last_upload_msg_time = time.ticks_ms()
 
     if type == 1200: #report checksum
         hash = filetools.hash(bytes(data[6:]).decode())
         send_msg(1201, data[:6], hash)
+        last_upload_msg_time = time.ticks_ms()
 
     if type == 1210: #report dirlist checksum
         hash = filetools.hash_dirlist(bytes(data[6:]).decode())
         send_msg(1211, data[:6], hash)
+        last_upload_msg_time = time.ticks_ms()
 
     if type == 2000: #begin file
         fname = bytes(data[6:]).decode()
@@ -135,6 +140,7 @@ def handle_msg(type, data):
         except:
             print("ERROR opening", fname)
             pass
+        last_upload_msg_time = time.ticks_ms()
 
     if type == 2100: #chunk file
         try:
@@ -146,6 +152,7 @@ def handle_msg(type, data):
         except:
             print("ERROR writing chunk")
             pass
+        last_upload_msg_time = time.ticks_ms()
 
     if type == 2110: #end file
         try:
@@ -156,10 +163,12 @@ def handle_msg(type, data):
         except:
             print("ERROR writing last chunk")
             pass
+        last_upload_msg_time = time.ticks_ms()
     
     if type == 9000: #reset board
         reset_timer = time.ticks_ms() + 5000
         send_msg(9001, data[:6], my_mac)
+        last_upload_msg_time = time.ticks_ms()
 
 
 
@@ -355,7 +364,7 @@ last_peer_valid = 0
 
 next_test = 0
 
-def handle_network():
+def handle_network(max_delay = 100):
     global msg_response
     global last_sync
     global last_announce
@@ -365,7 +374,7 @@ def handle_network():
 
     msg_response = None
 
-    while(enow.any()):
+    while(enow.any() and time.ticks_ms() < rawtime+max_delay):
         recv_cb(enow)
         if(msg_response != None): break
         
@@ -415,8 +424,13 @@ if __name__ == "__main__":
         while(True):
             rawtime = time.ticks_ms()
             
-            handle_network()
+            handle_network(25)
 
+            if last_upload_msg_time > 0 and rawtime < last_upload_msg_time + config.remote_upload_timeout:
+                for channel in my_conf['channels']:
+                    channel[1].duty(50)
+                handle_dbgled()
+                continue #ignore rest of main loop
             
             multiplier = config.max_brightness
 
@@ -427,13 +441,14 @@ if __name__ == "__main__":
             
             handle_dbgled()
             
-            max_value = 1024
+            max_value = 0
             for channel in my_conf['channels']:
-                if channel[1].duty() < max_value:
+                if channel[1].duty() > max_value:
                     max_value = channel[1].duty()
 
             if max_value == 0:
                 brightness_filtered = brightness_filtered * 0.999 + 0.001 * (1-(photodiode.read() / 4095.0))
+                gc.collect() #collect only when nothing is visible right now
 
             if brightness_filtered > 0.7:
                 brightness_shutdown = True
@@ -444,8 +459,7 @@ if __name__ == "__main__":
                 last_brightness_send = rawtime
                 send_brightness(brightness_filtered)
             
-
-            gc.collect()
+           
 
 
     except KeyboardInterrupt as ir:
