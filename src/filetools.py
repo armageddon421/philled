@@ -67,3 +67,13 @@ def hash_dirlist(dir):
         sys.print_exception(e)
         print(dir, "not found for hashing or error")
         return b''
+    
+def ensure_path_exists(file):
+    dirs = file.split("/")[:-1]
+
+    for i in range(len(dirs)):
+        dir = "/".join(dirs[:i+1])
+        try:
+            os.mkdir(dir)
+        except:
+            pass

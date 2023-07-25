@@ -126,7 +126,7 @@ def handle_msg(type, data):
 
     if type == 2000: #begin file
         fname = bytes(data[6:]).decode()
-
+        filetools.ensure_path_exists(fname)
         try:
             if(current_file_write != None): current_file_write.close()
             current_file_write = open(fname, "wb")
@@ -555,8 +555,13 @@ def sendFile(peer, fname):
 
         return False
 
-def syncFiles(dir="."):
+
+def syncFiles(dir=".", forceWipe=False):
     success = True
+
+    #never wipe if not syncing everything afterwards
+    if dir != ".":
+        forceWipe = False
 
     if type(dir) is not list:
         dir = [dir]
@@ -589,10 +594,11 @@ def syncFiles(dir="."):
             print("unreachable", peer['name'])
 
     handle_effects = False
-    for d in dir:
-        if(d == "." or d == "/" or d == "./" or d.startsWith("effects") or d.startsWith("/effects") or d.startsWith("./effects")):
-            handle_effects = True
-            break
+    if not forceWipe:
+        for d in dir:
+            if(d == "." or d == "/" or d == "./" or d == "effects" or d == "/effects" or d == "./effects"):
+                handle_effects = True
+                break
     
     #for each responsive board
     for peer in peers_alive:
@@ -645,6 +651,20 @@ def syncFiles(dir="."):
             print("skipping effects handling")
 
 
+        if forceWipe:
+            wipe_success = False
+            for i in range(5):
+                send_msg(1100, peer['mac'], my_mac+".")
+                if waitResponse(1101, 5000):
+                    print("WIPE successful")
+                    wipe_success = True
+                    break
+            
+            if not wipe_success:
+                print("WIPE UNSUCCESSFUL, continuing normal sync")
+
+
+
         sendlist = []
         #for each local file
         for file,sha in [item for row in [filetools.filelist(d) for d in dir] for item in row]:
@@ -666,10 +686,14 @@ def syncFiles(dir="."):
                     
             
             if(abandon_peer):
-                print("timeout checking file, abandoning client")
-                success = False
-                sendlist.clear()
-                break
+                if forceWipe:
+                    print("timeout checking file, adding file anyways due to forced wipe")
+                    sendlist.append(file)
+                else:
+                    print("timeout checking file, abandoning client")
+                    success = False
+                    sendlist.clear()
+                    break
         
         if(len(sendlist) == 0):
             continue
