@@ -40,7 +40,7 @@ my_conf = find_peer_by_mac(my_mac)
 print(my_conf)
 
 #filter boards by group assignment
-boards.board_conf = [x for x in filter(lambda conf: conf.group == my_conf.group, boards.board_conf)]
+boards.board_conf = [x for x in filter(lambda conf: conf["group"] == my_conf["group"], boards.board_conf)]
 
 ap.config(ssid=my_conf['name'], channel=config.wifi_config['chn'], key=config.wifi_config['psk'], security=network.AUTH_WPA2_PSK)
 
