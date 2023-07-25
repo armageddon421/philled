@@ -39,6 +39,12 @@ print(my_mac)
 my_conf = find_peer_by_mac(my_mac)
 print(my_conf)
 
+if not my_conf:
+    while True:
+        print("unconfigured, MY MAC:", my_mac)
+        time.sleep(1.0)
+
+
 #filter boards by group assignment
 boards.board_conf = [x for x in filter(lambda conf: conf["group"] == my_conf["group"], boards.board_conf)]
 
