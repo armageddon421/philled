@@ -20,10 +20,13 @@ Uploading uses mpremote, which can be installed via pip as explained on [this pa
 use included batch files:
 | File | Description |
 | --- | --- |
-| clean.bat | deletes everything on the board, useful if files have been deleted locally | 
-| upload.bat | uploads the src folder to the auto-detected board by mpremote | 
-| sync_to_all_boards.bat | syncs all files from the connected board to all other wirelessly online boards via espnow | 
-| repl.bat | starts an interative python shell on the board | 
+| clean.bat | deletes everything on the board, useful if files have been deleted locally. | 
+| upload.bat | uploads the src folder to the auto-detected board by mpremote. | 
+| repl.bat | starts an interative python shell on the board. useful for debugging. | 
+| sync_to_all_boards.bat | syncs all files from the connected board to all other wirelessly online boards via espnow. Make sure you have uploaded to the board first. | 
+| wipe_and_resync_to_all_boards.bat | same as sync to all boards but wipes the remote boards completely first. | 
+| sync_to_all_boards_only_effects_and_config.bat | syncs only the effects and conf folders. | 
+
 
 ## Notes on mesh network
 
@@ -61,6 +64,8 @@ def render(channel, max_channels, time, epoch):
 
 The mac address needed will be output by a board during startup. After flashing micropython and uploading the project, connect via repl and hit Ctrl+D to reboot it. The mac can be copied to the boards.py file in the way it is represented there.
 
-for the channels list, which is limited to 6 entries on the esp32-c3, the first number is the channel or pixel number in the whole setup. The second number is the GPIO pin of the board to use. These are the raw GPIO numbers of the ESP32-c3, not the "D" numbers. You can find a diagram on [seedstudio's wiki](https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/#pinout-diagram) where it's the GPIO pin numbers in the green boxes.
+for the channels list, which is limited to 6 entries on the esp32-c3, the first number is the channel or pixel number in the whole setup, starting at zero. The second number is the GPIO pin of the board to use. These are the raw GPIO numbers of the ESP32-c3, not the "D" numbers. You can find a diagram on [seedstudio's wiki](https://wiki.seeedstudio.com/XIAO_ESP32C3_Getting_Started/#pinout-diagram) where it's the GPIO pin numbers in the green boxes.
 
 The name can be defined arbitrarily but has to be unique. This will also be the name of the wifi AP provided.
+
+There is a group parameter for easier organization. The boards will filter any entries that are not in their same group and therefore not communicate with boards from other groups at all.
