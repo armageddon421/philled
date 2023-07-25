@@ -3,11 +3,12 @@ enabled = True
 solo = False
 
 # external parameters
-runtime = 4000 #ms
+runtime = 20000 #ms
 fade = True
 
 # effect parameters
-repetitons = 2
+repetitons = 8
+brightness = 0.6
 
 import math
 
@@ -25,4 +26,4 @@ def render(channel, max_channels, time, epoch):
     elif variant == 2:
         divisor /= 2
 
-    return math.sin(time/period*math.pi*2 + channel*math.pi*2/divisor)/2+0.5
+    return brightness * (math.sin(time/period*math.pi*2 + channel*math.pi*2/divisor)/2+0.5)

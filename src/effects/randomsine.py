@@ -3,7 +3,7 @@ enabled = True
 solo = False
 
 # external parameters
-runtime = 5000 #ms
+runtime = 15000 #ms
 fade = True
 
 # effect parameters

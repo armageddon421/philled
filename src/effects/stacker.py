@@ -7,7 +7,8 @@ runtime = 12000 #ms
 fade = False
 
 # effect parameters
-
+dot_brightness = 1.0
+stack_brightness = 0.25
 
 import math
 
@@ -29,9 +30,9 @@ def render(channel, max_channels, time, epoch):
         stack_steps += steps
 
     if channel == dot_index:
-        return 1.0
+        return dot_brightness
     
     if channel < current_stack:
-        return 0.25
+        return stack_brightness
 
     return 0.0

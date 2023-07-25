@@ -9,6 +9,7 @@ fade = True
 # effect parameters
 repetitons = 6
 subdivisions = 1
+brightness = 0.8
 
 import math
 
@@ -31,4 +32,4 @@ def render(channel, max_channels, time, epoch):
 
     value = 1.0 - (distance / (max_channels/subs))
 
-    return value
+    return value * brightness

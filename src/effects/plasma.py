@@ -3,11 +3,12 @@ enabled = True
 solo = False
 
 # external parameters
-runtime = 4000 #ms
+runtime = 15000 #ms
 fade = True
 
 # effect parameters
-
+brightness = 0.9
+enable_palette_variant = True
 
 import math
 
@@ -24,4 +25,8 @@ def render(channel, max_channels, time, epoch):
 
     value /= 3
 
-    return value
+    if enable_palette_variant and epoch%2:
+        value = math.sin((value%1)*2*math.pi)
+        
+
+    return value * brightness
