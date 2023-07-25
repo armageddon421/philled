@@ -2,6 +2,7 @@ board_conf = [
     {
         "mac": b'4\x85\x18\x06\xfd\xa1',
         "name": "philled1",
+        "group": 1,
         "channels": [
             [0, 4],
             [1, 5],
@@ -14,6 +15,7 @@ board_conf = [
     {   
         "mac": b'4\x85\x18\x06\xfe\xf9',
         "name": "philled2",
+        "group": 1,
         "channels": [
             [6, 4],
             [7, 5],
@@ -26,6 +28,7 @@ board_conf = [
     {   
         "mac": b'4\x85\x18\x05\x87\xc9',
         "name": "philled3",
+        "group": 1,
         "channels": [
             [12, 4],
             [13, 5],
@@ -38,6 +41,7 @@ board_conf = [
     {   
         "mac": b'4\x85\x18\x05\xb2m',
         "name": "philled4",
+        "group": 1,
         "channels": [
             [18, 4],
             [19, 5],
@@ -50,6 +54,7 @@ board_conf = [
     {   
         "mac": b'4\x85\x18\x05\x93U',
         "name": "philled5",
+        "group": 2,
         "channels": [
             ]
     }
