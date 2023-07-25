@@ -570,6 +570,9 @@ def sendFile(peer, fname):
 def syncFiles(dir="."):
     success = True
 
+    if type(dir) is not list:
+        dir = [dir]
+
     #warm up network
     print("network warmup", end='')
     for i in range(30):
@@ -650,7 +653,7 @@ def syncFiles(dir="."):
 
         sendlist = []
         #for each local file
-        for file,sha in filetools.filelist(dir):
+        for file,sha in [item for row in [filetools.filelist(d) for d in dir] for item in row]:
             #query remote board file checksum
             abandon_peer = True
             for i in range(5):
