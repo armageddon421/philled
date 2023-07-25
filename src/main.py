@@ -601,48 +601,51 @@ def syncFiles(dir="."):
     for peer in peers_alive:
         print("===== handling", peer['name'])
 
-        #check effects dirlist hashes
-        wipe_effects = False
-        effects_hash = filetools.hash_dirlist("effects")
+        if(dir == "." or dir == "/" or dir == "./" or dir.startsWith("effects") or dir.startsWith("/effects") or dir.startsWith("./effects")):
+            #check effects dirlist hashes
+            wipe_effects = False
+            effects_hash = filetools.hash_dirlist("effects")
 
-        abandon_peer = True
+            abandon_peer = True
 
-        for i in range(5):
-            send_msg(1210, peer['mac'], my_mac+"effects")
-            response = waitResponse(1211)
-            if response:
-                remote_effects_hash = response[1]
-                if len(remote_effects_hash) != 32:
-                    print("remote effects not present")
-                elif effects_hash != remote_effects_hash:
-                    print("remote effects different, wipe!")
-                    wipe_effects = True
-                else:
-                    print("remote effects list unchanged")
-                abandon_peer = False
-                break
-                
-        
-        if(abandon_peer):
-            print("remote effects hash timeout, abandoning client")
-            continue
-        abandon_peer = True
-
-        #clear effects folder
-        if(wipe_effects):
             for i in range(5):
-                send_msg(1100, peer['mac'], my_mac+"effects")
-                if waitResponse(1101, 5000):
-                    print("wiped effects")
+                send_msg(1210, peer['mac'], my_mac+"effects")
+                response = waitResponse(1211)
+                if response:
+                    remote_effects_hash = response[1]
+                    if len(remote_effects_hash) != 32:
+                        print("remote effects not present")
+                    elif effects_hash != remote_effects_hash:
+                        print("remote effects different, wipe!")
+                        wipe_effects = True
+                    else:
+                        print("remote effects list unchanged")
                     abandon_peer = False
                     break
-        else:
-            print("not wiping effects")
-            abandon_peer = False
+                    
+            
+            if(abandon_peer):
+                print("remote effects hash timeout, abandoning client")
+                continue
+            abandon_peer = True
 
-        if(abandon_peer):
-            print("timeout wiping effects, abandoning client")
-            continue
+            #clear effects folder
+            if(wipe_effects):
+                for i in range(5):
+                    send_msg(1100, peer['mac'], my_mac+"effects")
+                    if waitResponse(1101, 5000):
+                        print("wiped effects")
+                        abandon_peer = False
+                        break
+            else:
+                print("not wiping effects")
+                abandon_peer = False
+
+            if(abandon_peer):
+                print("timeout wiping effects, abandoning client")
+                continue
+        else:
+            print("skipping effects handling")
 
 
         sendlist = []
