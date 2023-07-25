@@ -238,7 +238,7 @@ def recv_cb(enow):
                 if(result[2] >= num_boards -1): continue
 
                 remote_peer = find_peer_by_mac(result[0])
-                if not remote_peer: return
+                if not remote_peer: continue
                 min_rssi = min(info[0], result[1])
                 if(remote_peer['age'] > config.age_limit or remote_peer['rssi'] < min_rssi or remote_peer['via'] == mac):
                     remote_peer['rssi'] = min_rssi
@@ -263,7 +263,7 @@ def recv_cb(enow):
                     if not dest_peer: return
                     via = dest_peer['via']
                     enow.send(via, data, False)
-                    print("got msg for ", dest_peer['name'], "from", find_peer_by_mac(mac)['name'])
+                    #print("got msg for ", dest_peer['name'], "from", find_peer_by_mac(mac)['name'])
                 except Exception as e: sys.print_exception(e)
 
         elif(type == 999):
@@ -417,24 +417,6 @@ if __name__ == "__main__":
             
             handle_network()
 
-            
-            if(False and timesync.now() >= next_test):
-                period = (len(my_peers)+1) * 100
-                offset = boards.board_conf.index(my_conf) * 100
-                next_test = timesync.now()//period*period + period + offset
-                
-                dbgled = 500
-                for peer in my_peers:
-                    send_msg(1000, peer['mac'],b'test')
-
-            #random.seed((timesync.now()//50)*23471)
-
-            
-
-            #for channel in my_conf['channels']:
-                ##channel[1].duty(random.randint(0,1023))
-                #channel[1].duty(int(math.sin(timesync.now()/500*math.pi + channel[0]*math.pi*2/6)*511+511)//20 + (dbgled>0) * 900)
-                ##channel[1].duty(int((1-brightness_filtered) * 1023))
             
             multiplier = config.max_brightness
 
