@@ -57,5 +57,12 @@ board_conf = [
         "group": 2,
         "channels": [
             ]
+    },
+    {   
+        "mac": b'4\x85\x18\x05\xd7\xa5',
+        "name": "philled6",
+        "group": 2,
+        "channels": [
+            ]
     }
 ]
