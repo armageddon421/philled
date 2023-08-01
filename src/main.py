@@ -68,6 +68,7 @@ for peer_conf in boards.board_conf:
         peer_conf['hops'] = 100
         peer_conf['via'] = b'\x00\x00\x00\x00\x00\x00'
         peer_conf['age'] = 1000
+        peer_conf['last_ping'] = 0
         my_peers.append(peer_conf)
     
     
@@ -120,8 +121,8 @@ def handle_msg(type, data):
         last_upload_msg_time = time.ticks_ms()
 
     if type == 1200: #report checksum
-        hash = filetools.hash(bytes(data[6:]).decode())
-        send_msg(1201, data[:6], hash)
+        hash = filetools.hash(bytes(data[10:]).decode())
+        send_msg(1201, data[:6], data[6:10] + hash)
         last_upload_msg_time = time.ticks_ms()
 
     if type == 1210: #report dirlist checksum
@@ -194,6 +195,7 @@ announce_fmt_size = struct.calcsize(announce_fmt)
 def recv_cb(enow):
     global dbgled
     global brightness_filtered
+    global last_upload_msg_time
     dbgled += 1
     try:
         #tnow = time.ticks_ms()
@@ -230,7 +232,7 @@ def recv_cb(enow):
         elif(type == 100):
             sender = find_peer_by_mac(mac)
             if not sender: return
-            if(info[0] >= sender['rssi'] or sender['age'] > config.age_limit or sender['via'] == mac):
+            if(info[0] - config.rssi_hysteresis_direct >= sender['rssi'] or sender['age'] > config.age_limit or sender['via'] == mac):
                 sender['rssi'] = info[0]
                 sender['hops'] = 1
                 sender['age'] = 0
@@ -248,8 +250,8 @@ def recv_cb(enow):
 
                 remote_peer = find_peer_by_mac(result[0])
                 if not remote_peer: continue
-                min_rssi = min(info[0], result[1])
-                if(remote_peer['age'] > config.age_limit or remote_peer['rssi'] < min_rssi or remote_peer['via'] == mac):
+                min_rssi = min(info[0], result[1]) - config.rssi_penalty_per_hop
+                if(remote_peer['age'] > config.age_limit or remote_peer['rssi'] < min_rssi - config.rssi_hysteresis or remote_peer['via'] == mac):
                     remote_peer['rssi'] = min_rssi
                     remote_peer['hops'] = result[2] + 1
                     remote_peer['age'] = 0
@@ -267,6 +269,7 @@ def recv_cb(enow):
                 handle_msg(type, data[10:])
                 #print("got msg for myself from", find_peer_by_mac(mac)['name'], "type", type)
             else:
+                last_upload_msg_time = time.ticks_ms()
                 try:
                     dest_peer = find_peer_by_mac(destination)
                     if not dest_peer: return
@@ -358,7 +361,7 @@ statusled = Pin(8, Pin.OUT)
 import effect
 effect.init(num_leds, config.fade_time)
 
-last_sync = 0
+#last_sync = 0
 last_announce = 0
 last_peer_valid = 0
 
@@ -378,12 +381,22 @@ def handle_network(max_delay = 100):
         recv_cb(enow)
         if(msg_response != None): break
         
-    if(time.ticks_diff(rawtime, last_sync) >= config.time_ping_period):
-        last_sync = rawtime
-        for peer in my_peers:
-            if(peer['hops'] == 1 and peer['age'] < config.age_limit):
-                ping(peer['mac'])
-                last_peer_valid = rawtime
+    ping_period = config.time_ping_period
+    if max_delay > 200: ping_period *= 5 #reduce on active upload
+    #if(time.ticks_diff(rawtime, last_sync) >= ping_period):
+    #last_sync = rawtime
+    max_ping_age = ping_period
+    max_ping_peer = None
+    for peer in my_peers:
+        ping_age = time.ticks_diff(rawtime, peer['last_ping'])
+        if(peer['hops'] == 1 and peer['age'] < config.age_limit and ping_age > max_ping_age):
+            max_ping_age = ping_age
+            max_ping_peer = peer
+
+    if max_ping_peer:
+        last_peer_valid = rawtime #lonely timeout
+        ping(max_ping_peer['mac'])
+        max_ping_peer['last_ping'] = rawtime
 
         timesync.update()
 
@@ -419,18 +432,23 @@ if __name__ == "__main__":
     #enow.irq(recv_cb)
     print("starting")
 
+    last_gc_time = 0
+
     try:
         
         while(True):
             rawtime = time.ticks_ms()
-            
-            handle_network(25)
 
-            if last_upload_msg_time > 0 and rawtime < last_upload_msg_time + config.remote_upload_timeout:
+            upload_active = last_upload_msg_time > 0 and rawtime < last_upload_msg_time + config.remote_upload_timeout
+            
+            if upload_active:
                 for channel in my_conf['channels']:
                     channel[1].duty(50)
+                handle_network(250)
                 handle_dbgled()
                 continue #ignore rest of main loop
+
+            handle_network(25)
             
             multiplier = config.max_brightness
 
@@ -448,7 +466,9 @@ if __name__ == "__main__":
 
             if max_value == 0:
                 brightness_filtered = brightness_filtered * 0.999 + 0.001 * (1-(photodiode.read() / 4095.0))
-                gc.collect() #collect only when nothing is visible right now
+                if(time.ticks_diff(rawtime,last_gc_time) >= config.min_gc_distance):
+                    gc.collect() #collect only when nothing is visible right now
+                    last_gc_time = rawtime
 
             if brightness_filtered > 0.7:
                 brightness_shutdown = True
@@ -545,11 +565,12 @@ def sendFile(peer, fname):
         #read back checksum
         checkusm_success = False
         for i in range(10):
-            send_msg(1200, peer['mac'], my_mac+fname)
+            uid = struct.pack("I", time.ticks_ms())
+            send_msg(1200, peer['mac'], my_mac+uid+fname)
             sha = filetools.hash(fname)
             response = waitResponse(1201)
-            if response:
-                remote_sha = response[1]
+            if response and response[1][:4] == uid:
+                remote_sha = response[1][4:]
                 if len(remote_sha) != 32:
                     print(fname, "still not present")
                     return False
@@ -684,11 +705,12 @@ def syncFiles(dir=".", forceWipe=False):
         for file,sha in [item for row in [filetools.filelist(d) for d in dir] for item in row]:
             #query remote board file checksum
             abandon_peer = True
+            uid = struct.pack("I", time.ticks_ms())
             for i in range(5):
-                send_msg(1200, peer['mac'], my_mac+file)
+                send_msg(1200, peer['mac'], my_mac+uid+file)
                 response = waitResponse(1201)
-                if response:
-                    remote_sha = response[1]
+                if response and response[1][:4] == uid:
+                    remote_sha = response[1][4:]
                     if len(remote_sha) != 32:
                         print(file, "not present")
                         sendlist.append(file)
