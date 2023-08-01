@@ -381,29 +381,30 @@ def handle_network(max_delay = 100):
         recv_cb(enow)
         if(msg_response != None): break
         
-    ping_period = config.time_ping_period
-    if max_delay > 200: ping_period *= 5 #reduce on active upload
-    #if(time.ticks_diff(rawtime, last_sync) >= ping_period):
-    #last_sync = rawtime
-    max_ping_age = ping_period
-    max_ping_peer = None
-    for peer in my_peers:
-        ping_age = time.ticks_diff(rawtime, peer['last_ping'])
-        if(peer['hops'] == 1 and peer['age'] < config.age_limit and ping_age > max_ping_age):
-            max_ping_age = ping_age
-            max_ping_peer = peer
+    if time.ticks_ms() < rawtime+max_delay:
+        ping_period = config.time_ping_period
+        if max_delay > 200: ping_period *= 5 #reduce on active upload
+        #if(time.ticks_diff(rawtime, last_sync) >= ping_period):
+        #last_sync = rawtime
+        max_ping_age = ping_period
+        max_ping_peer = None
+        for peer in my_peers:
+            ping_age = time.ticks_diff(rawtime, peer['last_ping'])
+            if(peer['hops'] == 1 and peer['age'] < config.age_limit and ping_age > max_ping_age):
+                max_ping_age = ping_age
+                max_ping_peer = peer
 
-    if max_ping_peer:
-        last_peer_valid = rawtime #lonely timeout
-        ping(max_ping_peer['mac'])
-        max_ping_peer['last_ping'] = rawtime
+        if max_ping_peer:
+            last_peer_valid = rawtime #lonely timeout
+            ping(max_ping_peer['mac'])
+            max_ping_peer['last_ping'] = rawtime
 
-        timesync.update()
+            timesync.update()
 
-        #print("time:", timesync.now(), "offset:", timesync.time_offset, timesync.time_slow_offset)
+            #print("time:", timesync.now(), "offset:", timesync.time_offset, timesync.time_slow_offset)
 
-    if(last_peer_valid > 0 and time.ticks_diff(rawtime, last_peer_valid) > config.lonely_reset_time):
-        machine.reset()
+        if(last_peer_valid > 0 and time.ticks_diff(rawtime, last_peer_valid) > config.lonely_reset_time):
+            machine.reset()
     
 
     if(time.ticks_diff(rawtime, last_announce) >= config.announce_period):
