@@ -6,7 +6,7 @@ wifi_config = {
 #mesh settings
 time_ping_period = 250
 announce_period = 1000
-brightness_period = 1000
+brightness_period = 2000
 age_limit = 5
 lonely_reset_time = 60000
 remote_upload_timeout = 5000
