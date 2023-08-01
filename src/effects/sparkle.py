@@ -7,9 +7,9 @@ runtime = 15000 #ms
 fade = True
 
 # effect parameters
-min_flashes = 5
-max_flashes = 15
-base_brightness = 0.25
+min_flashes = 3
+max_flashes = 7
+base_brightness = 0.35
 flash_time = 50
 recover_time = 500
 enable_zero_recovery_variant = True
