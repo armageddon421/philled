@@ -18,7 +18,7 @@ min_gc_distance = 20000
 
 #gereral LED settings
 max_brightness = 1023   #max 1023
-led_gamma = 2.8         #1.0 to disable
+led_gamma = 2.2         #1.0 to disable # 2.8 "ideal"
 
 #effect settings
 fade_time = 500 #ms
