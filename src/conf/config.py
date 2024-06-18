@@ -22,3 +22,4 @@ led_gamma = 2.2         #1.0 to disable # 2.8 "ideal"
 
 #effect settings
 fade_time = 500 #ms
+timescale = 0.25

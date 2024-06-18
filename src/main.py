@@ -456,7 +456,9 @@ if __name__ == "__main__":
             if brightness_shutdown:
                 multiplier = 0
 
-            effect.run(my_conf['channels'], timesync.now(), multiplier, config.led_gamma)
+            effect_time = int(timesync.now() * config.timescale)
+            
+            effect.run(my_conf['channels'], effect_time, multiplier, config.led_gamma)
             
             handle_dbgled()
             
